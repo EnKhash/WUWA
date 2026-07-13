@@ -3,587 +3,446 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#0B0A0E">
+<meta name="theme-color" content="#090b12">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Aemeath Forge">
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="icon-192.png">
-<title>Aemeath Countdown — Forge Gauge</title>
+<meta name="apple-mobile-web-app-title" content="WUWA Planner">
+<link rel="manifest" href="./manifest.webmanifest">
+<title>WUWA Pull Planner</title>
 <style>
-  
-
-  :root{
-    --bg-void:#0B0A0E;
-    --bg-panel:#151319;
-    --bg-panel-raised:#1D1A24;
-    --line:#2A2732;
-    --molten-orange:#FF6B35;
-    --molten-gold:#FFB627;
-    --fusion-red:#C1272D;
-    --text-hi:#F2EEE6;
-    --text-mid:#B8B3C2;
-    --text-dim:#736E7D;
-    --good:#5FD9A0;
-  }
-
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{
-    background:
-      radial-gradient(ellipse 900px 500px at 50% -10%,rgba(255,107,53,.10),transparent 60%),
-      radial-gradient(ellipse 700px 500px at 90% 100%,rgba(193,39,45,.08),transparent 60%),
-      var(--bg-void);
-    color:var(--text-hi);
-    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
-    min-height:100vh;
-    padding:32px 20px 60px;
-  }
-
-  .wrap{max-width:680px;margin:0 auto}
-  header{margin-bottom:28px}
-  .eyebrow{
-    font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
-    font-size:11px;letter-spacing:.14em;color:var(--molten-orange);
-    text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:8px;
-  }
-  .eyebrow::before{
-    content:'';width:6px;height:6px;border-radius:50%;
-    background:var(--molten-orange);box-shadow:0 0 8px var(--molten-orange);
-    animation:pulse 2s ease-in-out infinite;
-  }
-  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
-  h1{
-    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;font-weight:700;font-size:30px;
-    letter-spacing:-.01em;line-height:1.15;
-  }
-  h1 span{color:var(--molten-orange)}
-  .sub{color:var(--text-mid);font-size:14px;margin-top:6px;max-width:48ch}
-  .save-status{
-    font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:11px;margin-top:9px;color:var(--text-dim)
-  }
-
-  .reactor,.panel,.stat-card,.verdict{
-    background:var(--bg-panel);border:1px solid var(--line);border-radius:16px;
-  }
-  .reactor{
-    position:relative;border-radius:20px;padding:32px 24px 26px;margin-bottom:20px;overflow:hidden;
-  }
-  .reactor::before{
-    content:'';position:absolute;inset:0;
-    background:linear-gradient(180deg,rgba(255,107,53,.05),transparent 40%);
-    pointer-events:none;
-  }
-  .gauge-row{display:flex;gap:28px;align-items:center}
-  .gauge-svg{flex-shrink:0}
-  .gauge-num{
-    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;font-weight:700;font-size:15px;fill:var(--text-hi)
-  }
-  .gauge-info{flex:1;min-width:0}
-  .astrite-total{
-    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;font-size:38px;font-weight:700;line-height:1;
-  }
-  .astrite-total .unit{font-size:15px;font-weight:500;color:var(--text-dim);margin-left:6px}
-  .astrite-label{
-    font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:11px;letter-spacing:.1em;
-    text-transform:uppercase;color:var(--text-dim);margin-top:4px;
-  }
-  .milestones{margin-top:16px;display:flex;flex-direction:column;gap:8px}
-  .milestone{
-    display:flex;justify-content:space-between;align-items:baseline;font-size:12.5px;
-    padding:7px 10px;border-radius:8px;background:rgba(255,255,255,.02);border:1px solid var(--line);
-  }
-  .milestone .m-label{color:var(--text-mid);display:flex;align-items:center;gap:6px}
-  .milestone .m-label::before{content:'';width:7px;height:7px;border-radius:2px}
-  .milestone.best .m-label::before{background:var(--good)}
-  .milestone.worst .m-label::before{background:var(--fusion-red)}
-  .milestone .m-val{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;color:var(--text-hi);font-weight:500}
-  .milestone .m-val.hit{color:var(--good)}
-
-  .stat-grid{
-    display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;
-  }
-  .stat-card{padding:18px}
-  .k{
-    font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:10.5px;letter-spacing:.08em;
-    text-transform:uppercase;color:var(--text-dim);margin-bottom:8px;
-  }
-  .v{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;font-size:26px;font-weight:700}
-  .v.small{font-size:18px}
-  .foot{font-size:12px;color:var(--text-mid);margin-top:6px;line-height:1.4}
-
-  input[type="date"],input[type="number"]{
-    background:var(--bg-panel-raised);border:1px solid var(--line);color:var(--text-hi);
-    font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:14px;padding:9px 10px;border-radius:8px;width:100%;
-  }
-  input:focus,textarea:focus{outline:2px solid var(--molten-orange);outline-offset:1px}
-
-  .panel{padding:20px;margin-bottom:20px}
-  .panel h2{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;font-size:16px;font-weight:600;margin-bottom:4px}
-  .desc{font-size:12.5px;color:var(--text-mid);margin-bottom:16px}
-
-  .setup-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  .setup-grid label,.log-form label{
-    font-size:11px;color:var(--text-dim);font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
-    display:block;margin-bottom:6px;
-  }
-
-  .log-form{display:flex;gap:10px;align-items:flex-end}
-  .log-form .field{flex:1}
-  button{
-    border:none;border-radius:8px;cursor:pointer;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;font-weight:600;
-  }
-  .primary{
-    background:linear-gradient(135deg,var(--molten-orange),var(--fusion-red));
-    color:#fff;font-size:13px;padding:10px 16px;white-space:nowrap;
-  }
-  .secondary{
-    background:var(--bg-panel-raised);border:1px solid var(--line);color:var(--text-hi);
-    font-size:13px;padding:10px 12px;
-  }
-
-  .log-list{margin-top:16px;display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto}
-  .log-entry{
-    display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;
-    font-size:12.5px;padding:9px 10px;border-radius:8px;background:rgba(255,255,255,.02);
-  }
-  .log-entry .date{color:var(--text-mid);font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
-  .log-entry .amt{color:var(--molten-gold);font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-weight:500}
-  .log-entry button{background:none;color:var(--text-dim);font-size:14px;padding:0 4px}
-  .log-entry button:hover{color:var(--fusion-red)}
-  .empty-log{font-size:12px;color:var(--text-dim);text-align:center;padding:14px 0}
-
-  .verdict{padding:18px 20px;font-size:13.5px;line-height:1.5;margin-bottom:20px}
-  .vk{
-    font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:10.5px;letter-spacing:.1em;
-    text-transform:uppercase;color:var(--molten-orange);margin-bottom:6px;
-  }
-
-  textarea{
-    width:100%;background:var(--bg-panel-raised);border:1px solid var(--line);color:var(--text-mid);
-    font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:11px;border-radius:8px;padding:10px;resize:none;
-  }
-  .button-row{display:flex;gap:10px;margin-top:10px}
-  .button-row button{flex:1}
-  .restore-msg{font-size:12px;margin-top:8px;display:none}
-
-  .reset-link{
-    display:block;text-align:center;margin-top:22px;font-size:11.5px;color:var(--text-dim);
-    text-decoration:underline;cursor:pointer;background:none;border:none;width:100%;
-  }
-  .reset-link:hover{color:var(--fusion-red)}
-
-  @media(max-width:520px){
-    .gauge-row{flex-direction:column;align-items:flex-start}
-    .stat-grid,.setup-grid{grid-template-columns:1fr}
-    .log-form{flex-direction:column;align-items:stretch}
-  }
+:root{
+  --bg:#090b12;--panel:#121722;--panel2:#192131;--line:#2b354a;
+  --text:#eef4ff;--muted:#9caac2;--cyan:#70d7ff;--violet:#aa8cff;
+  --green:#55d998;--amber:#f4bd4e;--red:#f06c78;--pink:#f19de2;
+}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{
+  margin:0;color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+  background:
+    radial-gradient(circle at 15% -10%,rgba(112,215,255,.16),transparent 30%),
+    radial-gradient(circle at 90% 0%,rgba(170,140,255,.16),transparent 30%),
+    linear-gradient(180deg,#090b12,#0b1019);
+  min-height:100vh;padding:18px 14px 60px;
+}
+.wrap{max-width:1180px;margin:auto}
+.hero,.card{
+  border:1px solid var(--line);
+  background:linear-gradient(180deg,rgba(18,23,34,.96),rgba(12,16,26,.96));
+  border-radius:22px;box-shadow:0 22px 60px rgba(0,0,0,.35)
+}
+.hero{padding:22px;margin-bottom:14px}
+.kicker{font-size:.76rem;letter-spacing:.14em;text-transform:uppercase;color:var(--cyan);font-weight:800}
+h1{margin:8px 0 6px;font-size:clamp(2rem,6vw,4rem);line-height:.95;letter-spacing:-.06em;
+  background:linear-gradient(90deg,var(--cyan),var(--violet),var(--pink));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{color:var(--muted);max-width:760px}
+.badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.badge{padding:8px 11px;border-radius:999px;border:1px solid var(--line);background:rgba(25,33,49,.72);font-size:.8rem;color:var(--muted)}
+.badge b{color:var(--text)}
+.nav{
+  position:sticky;top:0;z-index:20;display:flex;gap:8px;overflow:auto;padding:10px 0;margin-bottom:12px;
+  background:linear-gradient(180deg,rgba(9,11,18,.98),rgba(9,11,18,.78));backdrop-filter:blur(10px)
+}
+.nav a{white-space:nowrap;text-decoration:none;color:var(--muted);border:1px solid var(--line);background:rgba(18,23,34,.9);padding:8px 11px;border-radius:999px;font-size:.8rem}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
+.card{padding:18px}
+.span12{grid-column:span 12}.span8{grid-column:span 8}.span6{grid-column:span 6}.span4{grid-column:span 4}
+@media(max-width:860px){.span8,.span6,.span4{grid-column:span 12}}
+.section-title{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:14px}
+.section-title h2{font-size:1.04rem;margin:0}.section-title span{font-size:.75rem;color:var(--muted)}
+.big{font-size:2.4rem;font-weight:950;letter-spacing:-.05em}
+.green{color:var(--green)}.amber{color:var(--amber)}.red{color:var(--red)}.cyan{color:var(--cyan)}
+.muted{color:var(--muted)}.small{font-size:.8rem}
+.metric{display:flex;justify-content:space-between;gap:14px;padding:11px 0;border-top:1px solid var(--line)}
+.metric:first-of-type{border-top:0;padding-top:0}
+.metric .k{color:var(--muted);font-size:.84rem}.metric .v{font-weight:800;text-align:right}
+input,select,textarea{
+  width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--text);
+  border-radius:10px;padding:10px;font:inherit
+}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--cyan);outline-offset:1px}
+label{font-size:.72rem;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.08em}
+.form-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media(max-width:760px){.form-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:500px){.form-grid{grid-template-columns:1fr}}
+.btn{
+  border:0;border-radius:10px;padding:10px 13px;font-weight:800;cursor:pointer;
+  background:linear-gradient(90deg,var(--cyan),var(--violet));color:#08111b
+}
+.btn.secondary{background:var(--panel2);color:var(--text);border:1px solid var(--line)}
+.btn.danger{background:rgba(240,108,120,.14);color:var(--red);border:1px solid rgba(240,108,120,.35)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.progress{height:12px;background:var(--panel2);border-radius:999px;overflow:hidden}
+.fill{height:100%;background:linear-gradient(90deg,var(--cyan),var(--violet));border-radius:999px}
+.roster-grid,.wish-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.item{
+  border:1px solid var(--line);background:rgba(25,33,49,.58);border-radius:16px;padding:13px;position:relative;overflow:hidden
+}
+.item:before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--cyan)}
+.item .name{font-weight:900}.item .meta{color:var(--muted);font-size:.78rem;margin-top:4px}
+.item .tag{display:inline-block;margin-top:9px;font-size:.68rem;border:1px solid var(--line);border-radius:999px;padding:5px 7px;color:var(--muted)}
+.item .actions{display:flex;gap:6px;margin-top:10px}
+.item .actions button{flex:1}
+.table{width:100%;border-collapse:collapse}
+.table th,.table td{padding:11px;border-bottom:1px solid var(--line);text-align:left;font-size:.84rem;vertical-align:top}
+.table th{color:var(--muted);font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;background:var(--panel2)}
+.table tr:last-child td{border-bottom:0}
+.priority{display:grid;grid-template-columns:38px 1fr auto;gap:10px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
+.priority:first-of-type{border-top:0}
+.rank{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:var(--panel2);border:1px solid var(--line);font-weight:900}
+.pill{font-size:.68rem;padding:5px 8px;border-radius:999px;border:1px solid rgba(112,215,255,.25);background:rgba(112,215,255,.08);color:var(--cyan);font-weight:800}
+.log-row{display:grid;grid-template-columns:120px 1fr 1fr auto;gap:8px;align-items:center;padding:9px 0;border-top:1px solid var(--line)}
+.log-row:first-child{border-top:0}
+@media(max-width:700px){.log-row{grid-template-columns:1fr 1fr}.log-row .full{grid-column:1/-1}}
+.codebox{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.72rem}
+.footer{text-align:center;color:var(--muted);font-size:.72rem;margin-top:20px}
 </style>
 </head>
 <body>
 <div class="wrap">
+  <section class="hero">
+    <div class="kicker">Personal Wuthering Waves Pull System</div>
+    <h1>WUWA Pull Planner</h1>
+    <div class="sub">Your roster, wishlist, current bank, target priorities, daily income, and remaining patch potential—one page, auto-saved.</div>
+    <div class="badges">
+      <div class="badge"><b>UL 69</b></div>
+      <div class="badge"><b>Top target:</b> Aemeath</div>
+      <div class="badge"><b>Secondary:</b> Mornye</div>
+      <div class="badge" id="saveBadge"><b>Auto-save:</b> checking…</div>
+    </div>
+  </section>
 
-<header>
-  <div class="eyebrow">Phase 2 Forge Watch</div>
-  <h1>Charging the <span>Aemeath</span> Reactor</h1>
-  <p class="sub">Track the current bank, daily Astrite gains, and your projected total by the target date.</p>
-  <p class="save-status" id="saveStatus">Checking auto-save…</p>
-</header>
+  <nav class="nav">
+    <a href="#dashboard">Dashboard</a>
+    <a href="#roster">Roster</a>
+    <a href="#wishlist">Wishlist</a>
+    <a href="#bank">Bank</a>
+    <a href="#daily">Daily Log</a>
+    <a href="#patch">Patch Forecast</a>
+    <a href="#backup">Backup</a>
+  </nav>
 
-<section class="reactor">
-  <div class="gauge-row">
-    <svg class="gauge-svg" width="140" height="140" viewBox="0 0 140 140">
-      <circle cx="70" cy="70" r="58" fill="none" stroke="#2A2732" stroke-width="12"/>
-      <circle id="gaugeWorst" cx="70" cy="70" r="58" fill="none" stroke="#C1272D" stroke-width="12"
-              stroke-linecap="round" stroke-dasharray="364.4" stroke-dashoffset="364.4"
-              transform="rotate(-90 70 70)" opacity=".35"/>
-      <circle id="gaugeBest" cx="70" cy="70" r="58" fill="none" stroke="url(#emberGrad)" stroke-width="12"
-              stroke-linecap="round" stroke-dasharray="364.4" stroke-dashoffset="364.4"
-              transform="rotate(-90 70 70)"/>
-      <defs>
-        <linearGradient id="emberGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#FFB627"/>
-          <stop offset="100%" stop-color="#FF6B35"/>
-        </linearGradient>
-      </defs>
-      <text x="70" y="66" text-anchor="middle" class="gauge-num" id="gaugePct">0%</text>
-      <text x="70" y="82" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#736E7D">of best-case</text>
-    </svg>
+  <main class="grid">
+    <section class="card span4" id="dashboard">
+      <div class="section-title"><h2>💎 Current Bank</h2><span>live</span></div>
+      <div class="big green" id="totalPulls">0 pulls</div>
+      <div class="muted small" id="bankBreakdown">0 Astrite + 0 Tides</div>
+      <div class="progress" style="margin-top:14px"><div class="fill" id="bankBar" style="width:0%"></div></div>
+      <div class="metric"><div class="k">Character pity</div><div class="v" id="pityDisplay">0 / 80</div></div>
+      <div class="metric"><div class="k">Guarantee</div><div class="v" id="guaranteeDisplay">No</div></div>
+    </section>
 
-    <div class="gauge-info">
-      <div class="astrite-total" id="totalAstrite">0<span class="unit">Astrite</span></div>
-      <div class="astrite-label">Currently Banked</div>
+    <section class="card span4">
+      <div class="section-title"><h2>🎯 Top Objective</h2><span>priority #1</span></div>
+      <div class="big" id="topTarget">Aemeath</div>
+      <div class="muted small" id="topTargetStatus">Must pull</div>
+      <div class="metric"><div class="k">Best-case coverage</div><div class="v" id="bestCoverage">0%</div></div>
+      <div class="metric"><div class="k">Worst-case coverage</div><div class="v" id="worstCoverage">0%</div></div>
+    </section>
 
-      <div class="milestones">
-        <div class="milestone best">
-          <span class="m-label">Best-case target</span>
-          <span class="m-val" id="bestVal">6,400</span>
-        </div>
-        <div class="milestone worst">
-          <span class="m-label">Worst-case target</span>
-          <span class="m-val" id="worstVal">12,800</span>
+    <section class="card span4">
+      <div class="section-title"><h2>📈 End-of-Patch</h2><span>projection</span></div>
+      <div class="big cyan" id="projectedPulls">0 pulls</div>
+      <div class="muted small" id="projectedAstrite">0 Astrite-equivalent</div>
+      <div class="metric"><div class="k">Logged this patch</div><div class="v" id="loggedTotal">0</div></div>
+      <div class="metric"><div class="k">Potential remaining</div><div class="v" id="potentialRemaining">0</div></div>
+    </section>
+
+    <section class="card span12" id="bank">
+      <div class="section-title"><h2>🏦 Bank & Pity</h2><span>editable</span></div>
+      <div class="form-grid">
+        <div><label>Current Astrite</label><input type="number" id="astriteInput" min="0"></div>
+        <div><label>Radiant Tides</label><input type="number" id="tidesInput" min="0"></div>
+        <div><label>Character Pity</label><input type="number" id="pityInput" min="0" max="79"></div>
+        <div><label>Guaranteed?</label><select id="guaranteeInput"><option value="false">No — 50/50</option><option value="true">Yes</option></select></div>
+      </div>
+    </section>
+
+    <section class="card span12" id="roster">
+      <div class="section-title"><h2>👥 Full Roster</h2><span id="rosterCount">0 characters</span></div>
+      <div class="roster-grid" id="rosterGrid"></div>
+      <div class="form-grid" style="margin-top:14px">
+        <div><label>Name</label><input id="newRosterName" placeholder="Character name"></div>
+        <div><label>Level</label><input id="newRosterLevel" type="number" value="90"></div>
+        <div><label>Status</label><select id="newRosterStatus"><option>Built</option><option>Building</option><option>Bench</option><option>Wishlist</option></select></div>
+        <div style="display:flex;align-items:end"><button class="btn" id="addRosterBtn" style="width:100%">Add Character</button></div>
+      </div>
+    </section>
+
+    <section class="card span6" id="wishlist">
+      <div class="section-title"><h2>❤️ Wishlist & Priority</h2><span>drag-free ranking</span></div>
+      <div id="wishlistList"></div>
+      <div class="form-grid" style="grid-template-columns:2fr 1fr 1fr;margin-top:12px">
+        <div><label>Name</label><input id="wishName" placeholder="Target"></div>
+        <div><label>Priority</label><select id="wishPriority"><option>Must</option><option>High</option><option>Optional</option><option>Watch</option></select></div>
+        <div style="display:flex;align-items:end"><button class="btn" id="addWishBtn" style="width:100%">Add</button></div>
+      </div>
+    </section>
+
+    <section class="card span6">
+      <div class="section-title"><h2>🧮 Target Cost Model</h2><span>per selected target</span></div>
+      <div class="form-grid" style="grid-template-columns:1fr 1fr">
+        <div><label>Best-case pulls</label><input type="number" id="bestPullsInput" min="1"></div>
+        <div><label>Worst-case pulls</label><input type="number" id="worstPullsInput" min="1"></div>
+      </div>
+      <div class="metric"><div class="k">Best-case cost</div><div class="v" id="bestCost">0</div></div>
+      <div class="metric"><div class="k">Worst-case cost</div><div class="v" id="worstCost">0</div></div>
+      <div class="metric"><div class="k">Verdict</div><div class="v" id="verdict">—</div></div>
+    </section>
+
+    <section class="card span12" id="daily">
+      <div class="section-title"><h2>📅 Daily Logging</h2><span>auto-saved</span></div>
+      <div class="form-grid">
+        <div><label>Date</label><input type="date" id="logDate"></div>
+        <div><label>Astrite Earned</label><input type="number" id="logAmount" min="1" placeholder="e.g. 60"></div>
+        <div><label>Source</label><select id="logSource"><option>Dailies</option><option>Events</option><option>Exploration</option><option>ToA / Wastes</option><option>Codes / Mail</option><option>Other</option></select></div>
+        <div style="display:flex;align-items:end"><button class="btn" id="addLogBtn" style="width:100%">Log Entry</button></div>
+      </div>
+      <div id="logList" style="margin-top:14px"></div>
+    </section>
+
+    <section class="card span12" id="patch">
+      <div class="section-title"><h2>🌌 Patch Potential Accumulation</h2><span>remaining estimate</span></div>
+      <table class="table">
+        <thead><tr><th>Source</th><th>Potential Remaining</th><th>Notes</th></tr></thead>
+        <tbody id="patchTable"></tbody>
+      </table>
+      <div class="row" style="margin-top:12px">
+        <button class="btn secondary" id="addPatchSourceBtn">+ Add Source</button>
+      </div>
+    </section>
+
+    <section class="card span12" id="backup">
+      <div class="section-title"><h2>💾 Backup & Restore</h2><span>for moving devices</span></div>
+      <textarea class="codebox" id="backupCode" rows="4" readonly></textarea>
+      <div class="row" style="margin-top:10px">
+        <button class="btn secondary" id="copyBackupBtn">Copy Backup</button>
+        <button class="btn secondary" id="downloadBackupBtn">Download JSON</button>
+      </div>
+      <div style="margin-top:16px">
+        <label>Paste Backup Code</label>
+        <textarea class="codebox" id="restoreCode" rows="4"></textarea>
+        <button class="btn" id="restoreBtn" style="margin-top:8px">Restore</button>
+      </div>
+    </section>
+  </main>
+
+  <div class="footer">WUWA Pull Planner · personal GitHub Pages app · local auto-save enabled</div>
+</div>
+
+<script>
+const STORAGE_KEY='wuwa-pull-planner-v1';
+const COST_PER_PULL=160;
+
+const defaultState={
+  account:{astrite:9842,tides:18,pity:10,guaranteed:false,bestPulls:40,worstPulls:80},
+  roster:[
+    {name:'Hiyuki',level:90,status:'Built'},{name:'Qiuyuan',level:90,status:'Built'},
+    {name:'Iuno',level:90,status:'Built'},{name:'Augusta',level:90,status:'Built'},
+    {name:'Phrolova',level:90,status:'Built'},{name:'Cartethyia',level:90,status:'Built'},
+    {name:'Ciaccona',level:90,status:'Built'},{name:'Cantarella',level:90,status:'Built'},
+    {name:'Shorekeeper',level:90,status:'Built'},{name:'Jianxin',level:90,status:'Built'},
+    {name:'Verina',level:90,status:'Built'},{name:'Rover (Aero)',level:90,status:'Built'},
+    {name:'Lucy',level:90,status:'Built'},{name:'Rebecca',level:90,status:'Built'},
+    {name:'Lucilya',level:90,status:'Built'},{name:'Mortefi',level:70,status:'Bench'},
+    {name:'Sanhua',level:70,status:'Bench'},{name:'Yangyang',level:50,status:'Bench'},
+    {name:'Youhu',level:50,status:'Bench'}
+  ],
+  wishlist:[
+    {name:'Aemeath',priority:'Must',status:'Awaiting rerun'},
+    {name:'Mornye',priority:'High',status:'Awaiting rerun'},
+    {name:'Lynae',priority:'Optional',status:'Future consideration'},
+    {name:'Suisui',priority:'Watch',status:'Kit / banner watch'}
+  ],
+  logs:[],
+  patch:[
+    {source:'Dailies + weeklies',remaining:2500,notes:'Editable estimate'},
+    {source:'Events',remaining:1800,notes:'Editable estimate'},
+    {source:'Exploration / region',remaining:2500,notes:'Editable estimate'},
+    {source:'ToA / Wastes',remaining:1600,notes:'Editable estimate'},
+    {source:'Maintenance / mail',remaining:600,notes:'Editable estimate'},
+    {source:'Codes / web events',remaining:300,notes:'Editable estimate'}
+  ]
+};
+
+let state=structuredClone(defaultState);
+const $=id=>document.getElementById(id);
+
+function localISO(){
+  const d=new Date();
+  return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);
+}
+function fmt(n){return Math.round(Number(n)||0).toLocaleString('en-US')}
+function totalAstriteEquivalent(){return Number(state.account.astrite||0)+Number(state.account.tides||0)*COST_PER_PULL}
+function totalPulls(){return Math.floor(totalAstriteEquivalent()/COST_PER_PULL)}
+function loggedTotal(){return state.logs.reduce((s,e)=>s+Number(e.amount||0),0)}
+function patchRemaining(){return state.patch.reduce((s,e)=>s+Number(e.remaining||0),0)}
+function projectedEquivalent(){return totalAstriteEquivalent()+patchRemaining()}
+function save(){
+  try{
+    localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
+    $('saveBadge').innerHTML='<b>Auto-save:</b> active ✓';
+  }catch(e){
+    $('saveBadge').innerHTML='<b>Auto-save:</b> unavailable';
+  }
+  updateBackup();
+}
+function load(){
+  try{
+    const raw=localStorage.getItem(STORAGE_KEY);
+    if(raw) state={...structuredClone(defaultState),...JSON.parse(raw)};
+  }catch(e){}
+  $('logDate').value=localISO();
+  syncInputs();render();
+}
+function syncInputs(){
+  $('astriteInput').value=state.account.astrite;
+  $('tidesInput').value=state.account.tides;
+  $('pityInput').value=state.account.pity;
+  $('guaranteeInput').value=String(state.account.guaranteed);
+  $('bestPullsInput').value=state.account.bestPulls;
+  $('worstPullsInput').value=state.account.worstPulls;
+}
+function render(){
+  const eq=totalAstriteEquivalent();
+  const pulls=totalPulls();
+  const bestCost=state.account.bestPulls*COST_PER_PULL;
+  const worstCost=state.account.worstPulls*COST_PER_PULL;
+  const top=state.wishlist[0]||{name:'No target',status:'—'};
+
+  $('totalPulls').textContent=fmt(pulls)+' pulls';
+  $('bankBreakdown').textContent=fmt(state.account.astrite)+' Astrite + '+fmt(state.account.tides)+' Tides';
+  $('bankBar').style.width=Math.min(eq/worstCost*100,100)+'%';
+  $('pityDisplay').textContent=fmt(state.account.pity)+' / 80';
+  $('guaranteeDisplay').textContent=state.account.guaranteed?'Yes':'No — 50/50';
+
+  $('topTarget').textContent=top.name;
+  $('topTargetStatus').textContent=top.status||top.priority;
+  $('bestCoverage').textContent=Math.round(eq/bestCost*100)+'%';
+  $('worstCoverage').textContent=Math.round(eq/worstCost*100)+'%';
+
+  $('projectedPulls').textContent=fmt(Math.floor(projectedEquivalent()/160))+' pulls';
+  $('projectedAstrite').textContent=fmt(projectedEquivalent())+' Astrite-equivalent';
+  $('loggedTotal').textContent=fmt(loggedTotal());
+  $('potentialRemaining').textContent=fmt(patchRemaining());
+
+  $('bestCost').textContent=fmt(bestCost)+' Astrite';
+  $('worstCost').textContent=fmt(worstCost)+' Astrite';
+  $('verdict').textContent=eq>=worstCost?'Worst case covered':eq>=bestCost?'Best case covered':'Still saving';
+
+  renderRoster();renderWishlist();renderLogs();renderPatch();updateBackup();
+}
+function renderRoster(){
+  $('rosterCount').textContent=state.roster.length+' characters';
+  $('rosterGrid').innerHTML=state.roster.map((c,i)=>`
+    <div class="item">
+      <div class="name">${c.name}</div>
+      <div class="meta">Lv.${c.level}</div>
+      <div class="tag">${c.status}</div>
+      <div class="actions">
+        <button class="btn secondary" onclick="editRoster(${i})">Edit</button>
+        <button class="btn danger" onclick="deleteRoster(${i})">Delete</button>
+      </div>
+    </div>`).join('');
+}
+function editRoster(i){
+  const c=state.roster[i];
+  const name=prompt('Character name',c.name); if(name===null)return;
+  const level=prompt('Level',c.level); if(level===null)return;
+  const status=prompt('Status',c.status); if(status===null)return;
+  state.roster[i]={name,level:Number(level)||c.level,status};render();save();
+}
+function deleteRoster(i){state.roster.splice(i,1);render();save()}
+function renderWishlist(){
+  $('wishlistList').innerHTML=state.wishlist.map((w,i)=>`
+    <div class="priority">
+      <div class="rank">${i+1}</div>
+      <div><div style="font-weight:900">${w.name}</div><div class="muted small">${w.status||''}</div></div>
+      <div>
+        <span class="pill">${w.priority}</span>
+        <div class="row" style="margin-top:7px;justify-content:flex-end">
+          <button class="btn secondary" onclick="moveWish(${i},-1)">↑</button>
+          <button class="btn secondary" onclick="moveWish(${i},1)">↓</button>
+          <button class="btn danger" onclick="deleteWish(${i})">×</button>
         </div>
       </div>
-    </div>
-  </div>
-</section>
+    </div>`).join('');
+}
+function moveWish(i,dir){
+  const j=i+dir;if(j<0||j>=state.wishlist.length)return;
+  [state.wishlist[i],state.wishlist[j]]=[state.wishlist[j],state.wishlist[i]];render();save()
+}
+function deleteWish(i){state.wishlist.splice(i,1);render();save()}
+function renderLogs(){
+  const rows=[...state.logs].sort((a,b)=>b.date.localeCompare(a.date));
+  $('logList').innerHTML=rows.length?rows.map((e)=>`
+    <div class="log-row">
+      <div>${e.date}</div><div>${e.source}</div><div class="amber">+${fmt(e.amount)}</div>
+      <button class="btn danger" onclick="deleteLog('${e.id}')">Delete</button>
+    </div>`).join(''):'<div class="muted small">No entries yet.</div>';
+}
+function deleteLog(id){state.logs=state.logs.filter(e=>e.id!==id);render();save()}
+function renderPatch(){
+  $('patchTable').innerHTML=state.patch.map((p,i)=>`
+    <tr>
+      <td><input value="${p.source}" onchange="updatePatch(${i},'source',this.value)"></td>
+      <td><input type="number" value="${p.remaining}" onchange="updatePatch(${i},'remaining',this.value)"></td>
+      <td><input value="${p.notes||''}" onchange="updatePatch(${i},'notes',this.value)"></td>
+    </tr>`).join('');
+}
+function updatePatch(i,key,val){
+  state.patch[i][key]=key==='remaining'?Number(val)||0:val;render();save()
+}
+function updateBackup(){
+  try{$('backupCode').value=btoa(unescape(encodeURIComponent(JSON.stringify(state))))}catch(e){}
+}
 
-<section class="panel">
-  <h2>Tracker Setup</h2>
-  <p class="desc">These values auto-save immediately on this browser.</p>
-  <div class="setup-grid">
-    <div>
-      <label>STARTING ASTRITE BANK</label>
-      <input type="number" id="startingBank" min="0" step="1">
-    </div>
-    <div>
-      <label>TARGET DATE</label>
-      <input type="date" id="targetDate">
-    </div>
-    <div>
-      <label>BEST-CASE PULLS</label>
-      <input type="number" id="bestPulls" min="1" step="1">
-    </div>
-    <div>
-      <label>WORST-CASE PULLS</label>
-      <input type="number" id="worstPulls" min="1" step="1">
-    </div>
-  </div>
-</section>
+['astriteInput','tidesInput','pityInput','bestPullsInput','worstPullsInput'].forEach(id=>{
+  $(id).addEventListener('input',()=>{
+    const map={astriteInput:'astrite',tidesInput:'tides',pityInput:'pity',bestPullsInput:'bestPulls',worstPullsInput:'worstPulls'};
+    state.account[map[id]]=Number($(id).value)||0;render();save()
+  })
+});
+$('guaranteeInput').addEventListener('change',()=>{state.account.guaranteed=$('guaranteeInput').value==='true';render();save()});
 
-<div class="stat-grid">
-  <div class="stat-card">
-    <div class="k">Time Remaining</div>
-    <div class="v small" id="daysLeftValue">—</div>
-    <div class="foot" id="daysLeftFoot">Set the target date.</div>
-  </div>
-  <div class="stat-card">
-    <div class="k">Projected By Target</div>
-    <div class="v small" id="projectedTotal">—</div>
-    <div class="foot" id="projectedFoot">Log daily gains to generate a projection.</div>
-  </div>
-</div>
+$('addRosterBtn').addEventListener('click',()=>{
+  const name=$('newRosterName').value.trim();if(!name)return;
+  state.roster.push({name,level:Number($('newRosterLevel').value)||1,status:$('newRosterStatus').value});
+  $('newRosterName').value='';render();save()
+});
+$('addWishBtn').addEventListener('click',()=>{
+  const name=$('wishName').value.trim();if(!name)return;
+  state.wishlist.push({name,priority:$('wishPriority').value,status:'Added manually'});
+  $('wishName').value='';render();save()
+});
+$('addLogBtn').addEventListener('click',()=>{
+  const amount=Number($('logAmount').value)||0;if(amount<=0)return;
+  state.logs.push({id:String(Date.now()),date:$('logDate').value||localISO(),amount,source:$('logSource').value});
+  $('logAmount').value='';render();save()
+});
+$('addPatchSourceBtn').addEventListener('click',()=>{
+  state.patch.push({source:'New source',remaining:0,notes:''});render();save()
+});
+$('copyBackupBtn').addEventListener('click',async()=>{
+  updateBackup();try{await navigator.clipboard.writeText($('backupCode').value);$('copyBackupBtn').textContent='Copied ✓';setTimeout(()=>$('copyBackupBtn').textContent='Copy Backup',1200)}catch(e){$('backupCode').select()}
+});
+$('downloadBackupBtn').addEventListener('click',()=>{
+  const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');
+  a.href=url;a.download='wuwa-pull-planner-backup.json';a.click();URL.revokeObjectURL(url);
+});
+$('restoreBtn').addEventListener('click',()=>{
+  try{
+    const parsed=JSON.parse(decodeURIComponent(escape(atob($('restoreCode').value.trim()))));
+    state=parsed;syncInputs();render();save();alert('Restored successfully');
+  }catch(e){alert('Invalid backup code')}
+});
 
-<section class="panel">
-  <h2>Daily Astrite Log</h2>
-  <p class="desc">Log only what you earned that day. Your starting balance is tracked separately so the daily average stays accurate.</p>
-  <div class="log-form">
-    <div class="field">
-      <label>DATE</label>
-      <input type="date" id="entryDate">
-    </div>
-    <div class="field">
-      <label>ASTRITE EARNED</label>
-      <input type="number" id="entryAmount" placeholder="e.g. 60" min="1">
-    </div>
-    <button class="primary" id="addEntryBtn">+ Log</button>
-  </div>
-  <div class="log-list" id="logList"></div>
-</section>
+load();
 
-<section class="verdict">
-  <div class="vk">Bottom Line</div>
-  <div id="verdictText">Set your bank and target date, then log daily earnings.</div>
-</section>
-
-<section class="panel">
-  <h2>Backup & Restore</h2>
-  <p class="desc">Auto-save uses browser storage. The backup code lets you move the tracker to another browser or device.</p>
-  <textarea id="backupCode" readonly rows="3"></textarea>
-  <div class="button-row">
-    <button class="secondary" id="copyCodeBtn">Copy Backup Code</button>
-    <button class="secondary" id="exportBtn">Download Backup</button>
-  </div>
-
-  <div style="margin-top:16px;border-top:1px solid var(--line);padding-top:16px">
-    <label style="font-size:11px;color:var(--text-dim);font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace">PASTE CODE TO RESTORE</label>
-    <textarea id="restoreInput" rows="3" placeholder="Paste backup code here…" style="margin-top:6px"></textarea>
-    <button class="primary" id="restoreBtn" style="width:100%;margin-top:10px">Restore From Code</button>
-    <div class="restore-msg" id="restoreMsg"></div>
-  </div>
-</section>
-
-<button class="reset-link" id="resetBtn">Reset all tracker data</button>
-
-</div>
-
-<script>
-(function(){
-  const STORAGE_KEY = 'aemeath-forge-gauge-v3';
-  const CIRC = 364.4;
-  const COST_PER_PULL = 160;
-
-  const els = {
-    saveStatus:document.getElementById('saveStatus'),
-    totalAstrite:document.getElementById('totalAstrite'),
-    gaugeBest:document.getElementById('gaugeBest'),
-    gaugeWorst:document.getElementById('gaugeWorst'),
-    gaugePct:document.getElementById('gaugePct'),
-    bestVal:document.getElementById('bestVal'),
-    worstVal:document.getElementById('worstVal'),
-    startingBank:document.getElementById('startingBank'),
-    targetDate:document.getElementById('targetDate'),
-    bestPulls:document.getElementById('bestPulls'),
-    worstPulls:document.getElementById('worstPulls'),
-    daysLeftValue:document.getElementById('daysLeftValue'),
-    daysLeftFoot:document.getElementById('daysLeftFoot'),
-    projectedTotal:document.getElementById('projectedTotal'),
-    projectedFoot:document.getElementById('projectedFoot'),
-    entryDate:document.getElementById('entryDate'),
-    entryAmount:document.getElementById('entryAmount'),
-    addEntryBtn:document.getElementById('addEntryBtn'),
-    logList:document.getElementById('logList'),
-    verdictText:document.getElementById('verdictText'),
-    backupCode:document.getElementById('backupCode'),
-    copyCodeBtn:document.getElementById('copyCodeBtn'),
-    exportBtn:document.getElementById('exportBtn'),
-    restoreInput:document.getElementById('restoreInput'),
-    restoreBtn:document.getElementById('restoreBtn'),
-    restoreMsg:document.getElementById('restoreMsg'),
-    resetBtn:document.getElementById('resetBtn')
-  };
-
-  let state = {
-    startingBank:600,
-    targetDate:'2026-07-31',
-    bestPulls:40,
-    worstPulls:80,
-    entries:[]
-  };
-
-  function localISO(){
-    const d=new Date();
-    return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);
-  }
-
-  function fmt(n){return Math.round(Number(n)||0).toLocaleString('en-US')}
-
-  function totalEarned(){
-    return state.entries.reduce((s,e)=>s+Number(e.amount||0),0);
-  }
-
-  function currentTotal(){
-    return Number(state.startingBank||0)+totalEarned();
-  }
-
-  function getTargets(){
-    return {
-      best:Number(state.bestPulls||0)*COST_PER_PULL,
-      worst:Number(state.worstPulls||0)*COST_PER_PULL
-    };
-  }
-
-  function daysLeft(){
-    if(!state.targetDate) return null;
-    const target=new Date(state.targetDate+'T00:00:00');
-    const now=new Date(); now.setHours(0,0,0,0);
-    return Math.ceil((target-now)/86400000);
-  }
-
-  function avgDaily(){
-    if(!state.entries.length) return 0;
-    const byDate={};
-    state.entries.forEach(e=>{byDate[e.date]=(byDate[e.date]||0)+Number(e.amount||0)});
-    const dates=Object.keys(byDate).sort();
-    if(!dates.length) return 0;
-    const first=new Date(dates[0]+'T00:00:00');
-    const last=new Date(dates[dates.length-1]+'T00:00:00');
-    const span=Math.max(1,Math.round((last-first)/86400000)+1);
-    return totalEarned()/span;
-  }
-
-  function save(){
-    try{
-      localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
-      els.saveStatus.textContent='Auto-saved ✓';
-      els.saveStatus.style.color='var(--good)';
-    }catch(e){
-      els.saveStatus.textContent='Auto-save unavailable here — use the backup code below.';
-      els.saveStatus.style.color='var(--fusion-red)';
-    }
-    updateBackup();
-  }
-
-  function load(){
-    els.entryDate.value=localISO();
-    try{
-      const raw=localStorage.getItem(STORAGE_KEY);
-      if(raw){
-        const parsed=JSON.parse(raw);
-        if(parsed && Array.isArray(parsed.entries)){
-          state={...state,...parsed};
-        }
-      }
-      els.saveStatus.textContent='Auto-save active ✓';
-      els.saveStatus.style.color='var(--good)';
-    }catch(e){
-      els.saveStatus.textContent='Auto-save unavailable here — use the backup code below.';
-      els.saveStatus.style.color='var(--fusion-red)';
-    }
-    syncInputs();
-    render();
-  }
-
-  function syncInputs(){
-    els.startingBank.value=state.startingBank;
-    els.targetDate.value=state.targetDate;
-    els.bestPulls.value=state.bestPulls;
-    els.worstPulls.value=state.worstPulls;
-  }
-
-  function render(){
-    const total=currentTotal();
-    const targets=getTargets();
-    const dLeft=daysLeft();
-    const avg=avgDaily();
-
-    els.totalAstrite.innerHTML=fmt(total)+'<span class="unit">Astrite</span>';
-
-    const bestPct=targets.best?Math.min(total/targets.best,1):0;
-    const worstPct=targets.worst?Math.min(total/targets.worst,1):0;
-    els.gaugeBest.style.strokeDashoffset=CIRC*(1-bestPct);
-    els.gaugeWorst.style.strokeDashoffset=CIRC*(1-worstPct);
-    els.gaugePct.textContent=Math.round(bestPct*100)+'%';
-
-    els.bestVal.textContent=fmt(targets.best)+(total>=targets.best?' ✓':'');
-    els.worstVal.textContent=fmt(targets.worst)+(total>=targets.worst?' ✓':'');
-    els.bestVal.classList.toggle('hit',total>=targets.best);
-    els.worstVal.classList.toggle('hit',total>=targets.worst);
-
-    if(dLeft===null){
-      els.daysLeftValue.textContent='—';
-      els.daysLeftFoot.textContent='Set the target date.';
-    }else if(dLeft<0){
-      els.daysLeftValue.textContent='Passed';
-      els.daysLeftFoot.textContent='Update the target date.';
-    }else{
-      els.daysLeftValue.textContent=dLeft+' day'+(dLeft===1?'':'s');
-      els.daysLeftFoot.textContent=dLeft===0?'Target date is today.':'Until the target date.';
-    }
-
-    if(dLeft===null || !state.entries.length){
-      els.projectedTotal.textContent='—';
-      els.projectedFoot.textContent=state.entries.length?'Set a target date to project.':'Log daily gains to generate a projection.';
-    }else{
-      const projected=total+Math.max(dLeft,0)*avg;
-      els.projectedTotal.textContent=fmt(projected);
-      els.projectedFoot.textContent='Based on ~'+fmt(avg)+' Astrite/day';
-
-      if(projected>=targets.worst){
-        els.verdictText.innerHTML='<strong>On pace for the worst-case target.</strong> Projected '+fmt(projected)+' Astrite by the target date.';
-      }else if(projected>=targets.best){
-        els.verdictText.innerHTML='<strong>On pace for the best-case target.</strong> Projected '+fmt(projected)+', but still '+fmt(targets.worst-projected)+' short of the worst-case target.';
-      }else{
-        els.verdictText.innerHTML='<strong>Behind the best-case pace.</strong> Projected '+fmt(projected)+', around '+fmt(targets.best-projected)+' short.';
-      }
-    }
-
-    const rows=[...state.entries].sort((a,b)=>b.date.localeCompare(a.date));
-    els.logList.innerHTML=rows.length?rows.map(e=>`
-      <div class="log-entry">
-        <span class="date">${e.date}</span>
-        <span class="amt">+${fmt(e.amount)}</span>
-        <button data-id="${e.id}" aria-label="Delete entry">✕</button>
-      </div>`).join(''):'<div class="empty-log">No daily entries yet.</div>';
-
-    els.logList.querySelectorAll('button[data-id]').forEach(btn=>{
-      btn.addEventListener('click',()=>{
-        state.entries=state.entries.filter(e=>e.id!==btn.dataset.id);
-        render();save();
-      });
-    });
-
-    updateBackup();
-  }
-
-  function updateBackup(){
-    try{
-      els.backupCode.value=btoa(unescape(encodeURIComponent(JSON.stringify(state))));
-    }catch(e){
-      els.backupCode.value='';
-    }
-  }
-
-  function addEntry(){
-    const amount=parseInt(els.entryAmount.value,10);
-    const date=els.entryDate.value||localISO();
-    if(!amount || amount<1) return;
-    state.entries.push({id:String(Date.now()),date,amount});
-    els.entryAmount.value='';
-    render();save();
-  }
-
-  function bindAutoSave(input,key,parser){
-    input.addEventListener('input',()=>{
-      state[key]=parser(input.value);
-      render();save();
-    });
-    input.addEventListener('change',()=>{
-      state[key]=parser(input.value);
-      render();save();
-    });
-  }
-
-  bindAutoSave(els.startingBank,'startingBank',v=>Math.max(0,Number(v)||0));
-  bindAutoSave(els.targetDate,'targetDate',v=>v);
-  bindAutoSave(els.bestPulls,'bestPulls',v=>Math.max(1,Number(v)||1));
-  bindAutoSave(els.worstPulls,'worstPulls',v=>Math.max(1,Number(v)||1));
-
-  els.addEntryBtn.addEventListener('click',addEntry);
-  els.entryAmount.addEventListener('keydown',e=>{if(e.key==='Enter')addEntry()});
-
-  els.copyCodeBtn.addEventListener('click',async()=>{
-    updateBackup();
-    try{
-      await navigator.clipboard.writeText(els.backupCode.value);
-      els.copyCodeBtn.textContent='Copied ✓';
-      setTimeout(()=>els.copyCodeBtn.textContent='Copy Backup Code',1400);
-    }catch(e){
-      els.backupCode.select();
-    }
-  });
-
-  els.exportBtn.addEventListener('click',()=>{
-    const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement('a');
-    a.href=url;a.download='aemeath-forge-backup.json';a.click();
-    URL.revokeObjectURL(url);
-  });
-
-  els.restoreBtn.addEventListener('click',()=>{
-    try{
-      const decoded=JSON.parse(decodeURIComponent(escape(atob(els.restoreInput.value.trim()))));
-      if(!decoded || !Array.isArray(decoded.entries)) throw new Error('Invalid');
-      state={...state,...decoded};
-      syncInputs();render();save();
-      els.restoreMsg.textContent='Restored ✓';
-      els.restoreMsg.style.color='var(--good)';
-      els.restoreMsg.style.display='block';
-      els.restoreInput.value='';
-    }catch(e){
-      els.restoreMsg.textContent='Invalid backup code.';
-      els.restoreMsg.style.color='var(--fusion-red)';
-      els.restoreMsg.style.display='block';
-    }
-  });
-
-  els.resetBtn.addEventListener('click',()=>{
-    if(!confirm('Reset all tracker data?')) return;
-    state={startingBank:0,targetDate:'',bestPulls:40,worstPulls:80,entries:[]};
-    syncInputs();render();save();
-  });
-
-  load();
-})();
-</script>
-
-<script>
-if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./service-worker.js').catch(() => {});
-  });
+if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js').catch(()=>{}));
 }
 </script>
-
 </body>
 </html>

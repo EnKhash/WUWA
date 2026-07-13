@@ -1,21 +1,24 @@
-AEMEATH FORGE GAUGE — iPHONE AUTO-SAVE SETUP
+WUWA PULL PLANNER
 
-Why the earlier file did not work:
-ChatGPT / Files preview can block JavaScript storage. Auto-save needs the page to run from a normal HTTPS website.
+Upload these files to the root of your GitHub repository:
+- index.html
+- manifest.webmanifest
+- service-worker.js
 
-FASTEST SETUP WITH GITHUB PAGES
-1. Create a new public GitHub repository.
-2. Upload all files from this ZIP to the repository root.
-3. Open Settings → Pages.
-4. Under “Build and deployment,” choose “Deploy from a branch.”
-5. Select branch “main” and folder “/(root)”, then Save.
-6. Open the Pages URL GitHub gives you.
-7. In Safari, tap Share → Add to Home Screen.
+Then enable GitHub Pages:
+Settings → Pages → Deploy from a branch → main → /(root)
 
-Once opened from the Pages URL:
-- Entries auto-save in Safari/local app storage.
-- The app works offline after the first load.
-- Keep the built-in backup code for moving between devices or clearing browser data.
+The app includes:
+- Full editable roster
+- Wishlist with priority order
+- Current Astrite and Radiant Tide bank
+- Character pity and guarantee status
+- Daily Astrite logging
+- Remaining patch potential by source
+- End-of-patch projection
+- Local browser auto-save
+- Backup and restore code
+- Downloadable JSON backup
 
-IMPORTANT
-Auto-save is browser/device specific. Safari data clearing, private browsing, or opening a different URL will create a separate save.
+Important:
+Auto-save is browser and URL specific. Use the same GitHub Pages URL in Safari.
