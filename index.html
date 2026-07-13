@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0B0A0E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Aemeath Forge">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Aemeath Countdown — Forge Gauge</title>
+<style>
+  
+
+  :root{
+    --bg-void:#0B0A0E;
+    --bg-panel:#151319;
+    --bg-panel-raised:#1D1A24;
+    --line:#2A2732;
+    --molten-orange:#FF6B35;
+    --molten-gold:#FFB627;
+    --fusion-red:#C1272D;
+    --text-hi:#F2EEE6;
+    --text-mid:#B8B3C2;
+    --text-dim:#736E7D;
+    --good:#5FD9A0;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:
+      radial-gradient(ellipse 900px 500px at 50% -10%,rgba(255,107,53,.10),transparent 60%),
+      radial-gradient(ellipse 700px 500px at 90% 100%,rgba(193,39,45,.08),transparent 60%),
+      var(--bg-void);
+    color:var(--text-hi);
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+    min-height:100vh;
+    padding:32px 20px 60px;
+  }
+
+  .wrap{max-width:680px;margin:0 auto}
+  header{margin-bottom:28px}
+  .eyebrow{
+    font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+    font-size:11px;letter-spacing:.14em;color:var(--molten-orange);
+    text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:8px;
+  }
+  .eyebrow::before{
+    content:'';width:6px;height:6px;border-radius:50%;
+    background:var(--molten-orange);box-shadow:0 0 8px var(--molten-orange);
+    animation:pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  h1{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;font-weight:700;font-size:30px;
+    letter-spacing:-.01em;line-height:1.15;
+  }
+  h1 span{color:var(--molten-orange)}
+  .sub{color:var(--text-mid);font-size:14px;margin-top:6px;max-width:48ch}
+  .save-status{
+    font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:11px;margin-top:9px;color:var(--text-dim)
+  }
+
+  .reactor,.panel,.stat-card,.verdict{
+    background:var(--bg-panel);border:1px solid var(--line);border-radius:16px;
+  }
+  .reactor{
+    position:relative;border-radius:20px;padding:32px 24px 26px;margin-bottom:20px;overflow:hidden;
+  }
+  .reactor::before{
+    content:'';position:absolute;inset:0;
+    background:linear-gradient(180deg,rgba(255,107,53,.05),transparent 40%);
+    pointer-events:none;
+  }
+  .gauge-row{display:flex;gap:28px;align-items:center}
+  .gauge-svg{flex-shrink:0}
+  .gauge-num{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;font-weight:700;font-size:15px;fill:var(--text-hi)
+  }
+  .gauge-info{flex:1;min-width:0}
+  .astrite-total{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;font-size:38px;font-weight:700;line-height:1;
+  }
+  .astrite-total .unit{font-size:15px;font-weight:500;color:var(--text-dim);margin-left:6px}
+  .astrite-label{
+    font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:11px;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--text-dim);margin-top:4px;
+  }
+  .milestones{margin-top:16px;display:flex;flex-direction:column;gap:8px}
+  .milestone{
+    display:flex;justify-content:space-between;align-items:baseline;font-size:12.5px;
+    padding:7px 10px;border-radius:8px;background:rgba(255,255,255,.02);border:1px solid var(--line);
+  }
+  .milestone .m-label{color:var(--text-mid);display:flex;align-items:center;gap:6px}
+  .milestone .m-label::before{content:'';width:7px;height:7px;border-radius:2px}
+  .milestone.best .m-label::before{background:var(--good)}
+  .milestone.worst .m-label::before{background:var(--fusion-red)}
+  .milestone .m-val{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;color:var(--text-hi);font-weight:500}
+  .milestone .m-val.hit{color:var(--good)}
+
+  .stat-grid{
+    display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;
+  }
+  .stat-card{padding:18px}
+  .k{
+    font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:10.5px;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--text-dim);margin-bottom:8px;
+  }
+  .v{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;font-size:26px;font-weight:700}
+  .v.small{font-size:18px}
+  .foot{font-size:12px;color:var(--text-mid);margin-top:6px;line-height:1.4}
+
+  input[type="date"],input[type="number"]{
+    background:var(--bg-panel-raised);border:1px solid var(--line);color:var(--text-hi);
+    font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:14px;padding:9px 10px;border-radius:8px;width:100%;
+  }
+  input:focus,textarea:focus{outline:2px solid var(--molten-orange);outline-offset:1px}
+
+  .panel{padding:20px;margin-bottom:20px}
+  .panel h2{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;font-size:16px;font-weight:600;margin-bottom:4px}
+  .desc{font-size:12.5px;color:var(--text-mid);margin-bottom:16px}
+
+  .setup-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .setup-grid label,.log-form label{
+    font-size:11px;color:var(--text-dim);font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+    display:block;margin-bottom:6px;
+  }
+
+  .log-form{display:flex;gap:10px;align-items:flex-end}
+  .log-form .field{flex:1}
+  button{
+    border:none;border-radius:8px;cursor:pointer;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;font-weight:600;
+  }
+  .primary{
+    background:linear-gradient(135deg,var(--molten-orange),var(--fusion-red));
+    color:#fff;font-size:13px;padding:10px 16px;white-space:nowrap;
+  }
+  .secondary{
+    background:var(--bg-panel-raised);border:1px solid var(--line);color:var(--text-hi);
+    font-size:13px;padding:10px 12px;
+  }
+
+  .log-list{margin-top:16px;display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto}
+  .log-entry{
+    display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;
+    font-size:12.5px;padding:9px 10px;border-radius:8px;background:rgba(255,255,255,.02);
+  }
+  .log-entry .date{color:var(--text-mid);font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
+  .log-entry .amt{color:var(--molten-gold);font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-weight:500}
+  .log-entry button{background:none;color:var(--text-dim);font-size:14px;padding:0 4px}
+  .log-entry button:hover{color:var(--fusion-red)}
+  .empty-log{font-size:12px;color:var(--text-dim);text-align:center;padding:14px 0}
+
+  .verdict{padding:18px 20px;font-size:13.5px;line-height:1.5;margin-bottom:20px}
+  .vk{
+    font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:10.5px;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--molten-orange);margin-bottom:6px;
+  }
+
+  textarea{
+    width:100%;background:var(--bg-panel-raised);border:1px solid var(--line);color:var(--text-mid);
+    font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:11px;border-radius:8px;padding:10px;resize:none;
+  }
+  .button-row{display:flex;gap:10px;margin-top:10px}
+  .button-row button{flex:1}
+  .restore-msg{font-size:12px;margin-top:8px;display:none}
+
+  .reset-link{
+    display:block;text-align:center;margin-top:22px;font-size:11.5px;color:var(--text-dim);
+    text-decoration:underline;cursor:pointer;background:none;border:none;width:100%;
+  }
+  .reset-link:hover{color:var(--fusion-red)}
+
+  @media(max-width:520px){
+    .gauge-row{flex-direction:column;align-items:flex-start}
+    .stat-grid,.setup-grid{grid-template-columns:1fr}
+    .log-form{flex-direction:column;align-items:stretch}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">Phase 2 Forge Watch</div>
+  <h1>Charging the <span>Aemeath</span> Reactor</h1>
+  <p class="sub">Track the current bank, daily Astrite gains, and your projected total by the target date.</p>
+  <p class="save-status" id="saveStatus">Checking auto-save…</p>
+</header>
+
+<section class="reactor">
+  <div class="gauge-row">
+    <svg class="gauge-svg" width="140" height="140" viewBox="0 0 140 140">
+      <circle cx="70" cy="70" r="58" fill="none" stroke="#2A2732" stroke-width="12"/>
+      <circle id="gaugeWorst" cx="70" cy="70" r="58" fill="none" stroke="#C1272D" stroke-width="12"
+              stroke-linecap="round" stroke-dasharray="364.4" stroke-dashoffset="364.4"
+              transform="rotate(-90 70 70)" opacity=".35"/>
+      <circle id="gaugeBest" cx="70" cy="70" r="58" fill="none" stroke="url(#emberGrad)" stroke-width="12"
+              stroke-linecap="round" stroke-dasharray="364.4" stroke-dashoffset="364.4"
+              transform="rotate(-90 70 70)"/>
+      <defs>
+        <linearGradient id="emberGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#FFB627"/>
+          <stop offset="100%" stop-color="#FF6B35"/>
+        </linearGradient>
+      </defs>
+      <text x="70" y="66" text-anchor="middle" class="gauge-num" id="gaugePct">0%</text>
+      <text x="70" y="82" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#736E7D">of best-case</text>
+    </svg>
+
+    <div class="gauge-info">
+      <div class="astrite-total" id="totalAstrite">0<span class="unit">Astrite</span></div>
+      <div class="astrite-label">Currently Banked</div>
+
+      <div class="milestones">
+        <div class="milestone best">
+          <span class="m-label">Best-case target</span>
+          <span class="m-val" id="bestVal">6,400</span>
+        </div>
+        <div class="milestone worst">
+          <span class="m-label">Worst-case target</span>
+          <span class="m-val" id="worstVal">12,800</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="panel">
+  <h2>Tracker Setup</h2>
+  <p class="desc">These values auto-save immediately on this browser.</p>
+  <div class="setup-grid">
+    <div>
+      <label>STARTING ASTRITE BANK</label>
+      <input type="number" id="startingBank" min="0" step="1">
+    </div>
+    <div>
+      <label>TARGET DATE</label>
+      <input type="date" id="targetDate">
+    </div>
+    <div>
+      <label>BEST-CASE PULLS</label>
+      <input type="number" id="bestPulls" min="1" step="1">
+    </div>
+    <div>
+      <label>WORST-CASE PULLS</label>
+      <input type="number" id="worstPulls" min="1" step="1">
+    </div>
+  </div>
+</section>
+
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="k">Time Remaining</div>
+    <div class="v small" id="daysLeftValue">—</div>
+    <div class="foot" id="daysLeftFoot">Set the target date.</div>
+  </div>
+  <div class="stat-card">
+    <div class="k">Projected By Target</div>
+    <div class="v small" id="projectedTotal">—</div>
+    <div class="foot" id="projectedFoot">Log daily gains to generate a projection.</div>
+  </div>
+</div>
+
+<section class="panel">
+  <h2>Daily Astrite Log</h2>
+  <p class="desc">Log only what you earned that day. Your starting balance is tracked separately so the daily average stays accurate.</p>
+  <div class="log-form">
+    <div class="field">
+      <label>DATE</label>
+      <input type="date" id="entryDate">
+    </div>
+    <div class="field">
+      <label>ASTRITE EARNED</label>
+      <input type="number" id="entryAmount" placeholder="e.g. 60" min="1">
+    </div>
+    <button class="primary" id="addEntryBtn">+ Log</button>
+  </div>
+  <div class="log-list" id="logList"></div>
+</section>
+
+<section class="verdict">
+  <div class="vk">Bottom Line</div>
+  <div id="verdictText">Set your bank and target date, then log daily earnings.</div>
+</section>
+
+<section class="panel">
+  <h2>Backup & Restore</h2>
+  <p class="desc">Auto-save uses browser storage. The backup code lets you move the tracker to another browser or device.</p>
+  <textarea id="backupCode" readonly rows="3"></textarea>
+  <div class="button-row">
+    <button class="secondary" id="copyCodeBtn">Copy Backup Code</button>
+    <button class="secondary" id="exportBtn">Download Backup</button>
+  </div>
+
+  <div style="margin-top:16px;border-top:1px solid var(--line);padding-top:16px">
+    <label style="font-size:11px;color:var(--text-dim);font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace">PASTE CODE TO RESTORE</label>
+    <textarea id="restoreInput" rows="3" placeholder="Paste backup code here…" style="margin-top:6px"></textarea>
+    <button class="primary" id="restoreBtn" style="width:100%;margin-top:10px">Restore From Code</button>
+    <div class="restore-msg" id="restoreMsg"></div>
+  </div>
+</section>
+
+<button class="reset-link" id="resetBtn">Reset all tracker data</button>
+
+</div>
+
+<script>
+(function(){
+  const STORAGE_KEY = 'aemeath-forge-gauge-v3';
+  const CIRC = 364.4;
+  const COST_PER_PULL = 160;
+
+  const els = {
+    saveStatus:document.getElementById('saveStatus'),
+    totalAstrite:document.getElementById('totalAstrite'),
+    gaugeBest:document.getElementById('gaugeBest'),
+    gaugeWorst:document.getElementById('gaugeWorst'),
+    gaugePct:document.getElementById('gaugePct'),
+    bestVal:document.getElementById('bestVal'),
+    worstVal:document.getElementById('worstVal'),
+    startingBank:document.getElementById('startingBank'),
+    targetDate:document.getElementById('targetDate'),
+    bestPulls:document.getElementById('bestPulls'),
+    worstPulls:document.getElementById('worstPulls'),
+    daysLeftValue:document.getElementById('daysLeftValue'),
+    daysLeftFoot:document.getElementById('daysLeftFoot'),
+    projectedTotal:document.getElementById('projectedTotal'),
+    projectedFoot:document.getElementById('projectedFoot'),
+    entryDate:document.getElementById('entryDate'),
+    entryAmount:document.getElementById('entryAmount'),
+    addEntryBtn:document.getElementById('addEntryBtn'),
+    logList:document.getElementById('logList'),
+    verdictText:document.getElementById('verdictText'),
+    backupCode:document.getElementById('backupCode'),
+    copyCodeBtn:document.getElementById('copyCodeBtn'),
+    exportBtn:document.getElementById('exportBtn'),
+    restoreInput:document.getElementById('restoreInput'),
+    restoreBtn:document.getElementById('restoreBtn'),
+    restoreMsg:document.getElementById('restoreMsg'),
+    resetBtn:document.getElementById('resetBtn')
+  };
+
+  let state = {
+    startingBank:600,
+    targetDate:'2026-07-31',
+    bestPulls:40,
+    worstPulls:80,
+    entries:[]
+  };
+
+  function localISO(){
+    const d=new Date();
+    return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);
+  }
+
+  function fmt(n){return Math.round(Number(n)||0).toLocaleString('en-US')}
+
+  function totalEarned(){
+    return state.entries.reduce((s,e)=>s+Number(e.amount||0),0);
+  }
+
+  function currentTotal(){
+    return Number(state.startingBank||0)+totalEarned();
+  }
+
+  function getTargets(){
+    return {
+      best:Number(state.bestPulls||0)*COST_PER_PULL,
+      worst:Number(state.worstPulls||0)*COST_PER_PULL
+    };
+  }
+
+  function daysLeft(){
+    if(!state.targetDate) return null;
+    const target=new Date(state.targetDate+'T00:00:00');
+    const now=new Date(); now.setHours(0,0,0,0);
+    return Math.ceil((target-now)/86400000);
+  }
+
+  function avgDaily(){
+    if(!state.entries.length) return 0;
+    const byDate={};
+    state.entries.forEach(e=>{byDate[e.date]=(byDate[e.date]||0)+Number(e.amount||0)});
+    const dates=Object.keys(byDate).sort();
+    if(!dates.length) return 0;
+    const first=new Date(dates[0]+'T00:00:00');
+    const last=new Date(dates[dates.length-1]+'T00:00:00');
+    const span=Math.max(1,Math.round((last-first)/86400000)+1);
+    return totalEarned()/span;
+  }
+
+  function save(){
+    try{
+      localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
+      els.saveStatus.textContent='Auto-saved ✓';
+      els.saveStatus.style.color='var(--good)';
+    }catch(e){
+      els.saveStatus.textContent='Auto-save unavailable here — use the backup code below.';
+      els.saveStatus.style.color='var(--fusion-red)';
+    }
+    updateBackup();
+  }
+
+  function load(){
+    els.entryDate.value=localISO();
+    try{
+      const raw=localStorage.getItem(STORAGE_KEY);
+      if(raw){
+        const parsed=JSON.parse(raw);
+        if(parsed && Array.isArray(parsed.entries)){
+          state={...state,...parsed};
+        }
+      }
+      els.saveStatus.textContent='Auto-save active ✓';
+      els.saveStatus.style.color='var(--good)';
+    }catch(e){
+      els.saveStatus.textContent='Auto-save unavailable here — use the backup code below.';
+      els.saveStatus.style.color='var(--fusion-red)';
+    }
+    syncInputs();
+    render();
+  }
+
+  function syncInputs(){
+    els.startingBank.value=state.startingBank;
+    els.targetDate.value=state.targetDate;
+    els.bestPulls.value=state.bestPulls;
+    els.worstPulls.value=state.worstPulls;
+  }
+
+  function render(){
+    const total=currentTotal();
+    const targets=getTargets();
+    const dLeft=daysLeft();
+    const avg=avgDaily();
+
+    els.totalAstrite.innerHTML=fmt(total)+'<span class="unit">Astrite</span>';
+
+    const bestPct=targets.best?Math.min(total/targets.best,1):0;
+    const worstPct=targets.worst?Math.min(total/targets.worst,1):0;
+    els.gaugeBest.style.strokeDashoffset=CIRC*(1-bestPct);
+    els.gaugeWorst.style.strokeDashoffset=CIRC*(1-worstPct);
+    els.gaugePct.textContent=Math.round(bestPct*100)+'%';
+
+    els.bestVal.textContent=fmt(targets.best)+(total>=targets.best?' ✓':'');
+    els.worstVal.textContent=fmt(targets.worst)+(total>=targets.worst?' ✓':'');
+    els.bestVal.classList.toggle('hit',total>=targets.best);
+    els.worstVal.classList.toggle('hit',total>=targets.worst);
+
+    if(dLeft===null){
+      els.daysLeftValue.textContent='—';
+      els.daysLeftFoot.textContent='Set the target date.';
+    }else if(dLeft<0){
+      els.daysLeftValue.textContent='Passed';
+      els.daysLeftFoot.textContent='Update the target date.';
+    }else{
+      els.daysLeftValue.textContent=dLeft+' day'+(dLeft===1?'':'s');
+      els.daysLeftFoot.textContent=dLeft===0?'Target date is today.':'Until the target date.';
+    }
+
+    if(dLeft===null || !state.entries.length){
+      els.projectedTotal.textContent='—';
+      els.projectedFoot.textContent=state.entries.length?'Set a target date to project.':'Log daily gains to generate a projection.';
+    }else{
+      const projected=total+Math.max(dLeft,0)*avg;
+      els.projectedTotal.textContent=fmt(projected);
+      els.projectedFoot.textContent='Based on ~'+fmt(avg)+' Astrite/day';
+
+      if(projected>=targets.worst){
+        els.verdictText.innerHTML='<strong>On pace for the worst-case target.</strong> Projected '+fmt(projected)+' Astrite by the target date.';
+      }else if(projected>=targets.best){
+        els.verdictText.innerHTML='<strong>On pace for the best-case target.</strong> Projected '+fmt(projected)+', but still '+fmt(targets.worst-projected)+' short of the worst-case target.';
+      }else{
+        els.verdictText.innerHTML='<strong>Behind the best-case pace.</strong> Projected '+fmt(projected)+', around '+fmt(targets.best-projected)+' short.';
+      }
+    }
+
+    const rows=[...state.entries].sort((a,b)=>b.date.localeCompare(a.date));
+    els.logList.innerHTML=rows.length?rows.map(e=>`
+      <div class="log-entry">
+        <span class="date">${e.date}</span>
+        <span class="amt">+${fmt(e.amount)}</span>
+        <button data-id="${e.id}" aria-label="Delete entry">✕</button>
+      </div>`).join(''):'<div class="empty-log">No daily entries yet.</div>';
+
+    els.logList.querySelectorAll('button[data-id]').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        state.entries=state.entries.filter(e=>e.id!==btn.dataset.id);
+        render();save();
+      });
+    });
+
+    updateBackup();
+  }
+
+  function updateBackup(){
+    try{
+      els.backupCode.value=btoa(unescape(encodeURIComponent(JSON.stringify(state))));
+    }catch(e){
+      els.backupCode.value='';
+    }
+  }
+
+  function addEntry(){
+    const amount=parseInt(els.entryAmount.value,10);
+    const date=els.entryDate.value||localISO();
+    if(!amount || amount<1) return;
+    state.entries.push({id:String(Date.now()),date,amount});
+    els.entryAmount.value='';
+    render();save();
+  }
+
+  function bindAutoSave(input,key,parser){
+    input.addEventListener('input',()=>{
+      state[key]=parser(input.value);
+      render();save();
+    });
+    input.addEventListener('change',()=>{
+      state[key]=parser(input.value);
+      render();save();
+    });
+  }
+
+  bindAutoSave(els.startingBank,'startingBank',v=>Math.max(0,Number(v)||0));
+  bindAutoSave(els.targetDate,'targetDate',v=>v);
+  bindAutoSave(els.bestPulls,'bestPulls',v=>Math.max(1,Number(v)||1));
+  bindAutoSave(els.worstPulls,'worstPulls',v=>Math.max(1,Number(v)||1));
+
+  els.addEntryBtn.addEventListener('click',addEntry);
+  els.entryAmount.addEventListener('keydown',e=>{if(e.key==='Enter')addEntry()});
+
+  els.copyCodeBtn.addEventListener('click',async()=>{
+    updateBackup();
+    try{
+      await navigator.clipboard.writeText(els.backupCode.value);
+      els.copyCodeBtn.textContent='Copied ✓';
+      setTimeout(()=>els.copyCodeBtn.textContent='Copy Backup Code',1400);
+    }catch(e){
+      els.backupCode.select();
+    }
+  });
+
+  els.exportBtn.addEventListener('click',()=>{
+    const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download='aemeath-forge-backup.json';a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  els.restoreBtn.addEventListener('click',()=>{
+    try{
+      const decoded=JSON.parse(decodeURIComponent(escape(atob(els.restoreInput.value.trim()))));
+      if(!decoded || !Array.isArray(decoded.entries)) throw new Error('Invalid');
+      state={...state,...decoded};
+      syncInputs();render();save();
+      els.restoreMsg.textContent='Restored ✓';
+      els.restoreMsg.style.color='var(--good)';
+      els.restoreMsg.style.display='block';
+      els.restoreInput.value='';
+    }catch(e){
+      els.restoreMsg.textContent='Invalid backup code.';
+      els.restoreMsg.style.color='var(--fusion-red)';
+      els.restoreMsg.style.display='block';
+    }
+  });
+
+  els.resetBtn.addEventListener('click',()=>{
+    if(!confirm('Reset all tracker data?')) return;
+    state={startingBank:0,targetDate:'',bestPulls:40,worstPulls:80,entries:[]};
+    syncInputs();render();save();
+  });
+
+  load();
+})();
+</script>
+
+<script>
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js').catch(() => {});
+  });
+}
+</script>
+
+</body>
+</html>
